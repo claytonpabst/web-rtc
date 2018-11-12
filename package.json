@@ -1,0 +1,23 @@
+{
+  "name": "web-rtc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/claytonpabst/web-rtc.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/claytonpabst/web-rtc/issues"
+  },
+  "homepage": "https://github.com/claytonpabst/web-rtc#readme",
+  "dependencies": {
+    "simple-peer": "^9.1.2",
+    "watchify": "^3.11.0"
+  }
+}
