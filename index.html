@@ -11,10 +11,15 @@
 <body>
   <style>
     #outgoing {
-          width: 600px;
-          word-wrap: break-word;
-        }
-      </style>
+      width: 600px;
+      word-wrap: break-word;
+    }
+    video {
+      width: 900px;
+      height: 600px;
+      border: 1px solid black;
+    }
+  </style>
   <form id="form1">
     <textarea id="incoming"></textarea>
     <button type="submit">submit</button>
@@ -23,6 +28,7 @@
     <textarea id="new-message"></textarea>
     <button type="submit">send</button>
   </form>
+  <video></video>
   <pre id="outgoing"></pre>
   <script src="bundle.js"></script>
 </body>
