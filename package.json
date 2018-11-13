@@ -17,7 +17,11 @@
   },
   "homepage": "https://github.com/claytonpabst/web-rtc#readme",
   "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "path": "^0.12.7",
     "simple-peer": "^9.1.2",
+    "socket.io": "^2.1.1",
     "watchify": "^3.11.0"
   }
 }

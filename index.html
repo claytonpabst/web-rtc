@@ -20,16 +20,17 @@
       border: 1px solid black;
     }
   </style>
-  <form id="form1">
-    <textarea id="incoming"></textarea>
-    <button type="submit">submit</button>
+  <form id="call">
+    <textarea id="call-id"></textarea>
+    <button type="submit">Call</button>
   </form>
-  <form id="form2">
-    <textarea id="new-message"></textarea>
-    <button type="submit">send</button>
+  <form id="answer">
+    <textarea id="answer-id"></textarea>
+    <button type="submit">Answer</button>
   </form>
   <video></video>
-  <pre id="outgoing"></pre>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
   <script src="bundle.js"></script>
 </body>
 
