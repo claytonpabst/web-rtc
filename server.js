@@ -23,11 +23,9 @@ app.post('/api/callPeer', function(req, res){
     spaces[nsp].answerer = req.body.ipObj
   }
   spaces[nsp].on('connection', function(socket){
-    spaces[nsp].on('callingPeer', function(){
-      if(spaces[nsp].initiator && spaces[nsp].answerer){
-        spaces[nsp].emit('callingPeer', {initiator:spaces[nsp].initiator, answerer:spaces[nsp].answerer});
-      }
-    })
+    if(spaces[nsp].initiator && spaces[nsp].answerer){
+      spaces[nsp].emit('callingPeer', {initiator:spaces[nsp].initiator, answerer:spaces[nsp].answerer});
+    }
   });
   res.send({status:200})
 })

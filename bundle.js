@@ -25,21 +25,29 @@ function gotMedia(stream){
   p = new Peer({ initiator: initiator, trickle:false, stream:stream })
 
   p.on('error', function (err) { console.log('error', err) })
-   
+  
   p.on('signal', function (data) {
-    console.log('SIGNAL', JSON.stringify(data))
+    // console.log('SIGNAL', JSON.stringify(data))
     $.post('/api/callPeer', {connectId:connectId, initiator:initiator, ipObj:JSON.stringify(data)}, function(res){
-      socket = io('/' + connectId, {forceNew:true})
-      socket.emit('callingPeer')
-      socket.on('callingPeer', function(ipObjects){
-        if(initiator){
-          p.signal(JSON.parse(ipObjects.initiator))
-        } else {
-          p.signal(JSON.parse(ipObjects.answerer))
-        }
-      });
+      connect()
     })
   })
+
+  let funcShouldRun = true
+  function connect(){
+    if(!funcShouldRun){return}
+    funcShouldRun = false 
+    socket = io('/' + connectId, {forceNew:true})
+    console.log(socket)
+    socket.on('callingPeer', function(ipObjects){
+      console.log(ipObjects)
+      if(initiator){
+        p.signal(JSON.parse(ipObjects.answerer))
+      } else {
+        p.signal(JSON.parse(ipObjects.initiator))
+      }
+    });
+  }
    
   p.on('connect', function () {
     console.log('CONNECT')
@@ -57,25 +65,6 @@ function gotMedia(stream){
     video.play()
   })
 }
- 
-// $(function () {
-//   var socket;
-
-//   document.querySelector('#form1').addEventListener('submit', function (ev) {
-//     ev.preventDefault()
-//     p.signal(JSON.parse(document.querySelector('#incoming').value))
-//     let newName = $(this).text()
-//     currentContact = newName
-//     $("#sending-message-to").text("Sending Message To: " + newName)
-//     $.post('/api/newContact', {newNameSpace:newName}, function(res){
-//       socket = io('/' + newName, {forceNew:true})
-//       socket.on('chat message', function(msg){
-//         $('#' + currentContact.toLocaleLowerCase() + '-messages').append($('<li>').text(msg));
-//       });
-//     })
-//   })
-
-// });
 
 },{"simple-peer":21}],2:[function(require,module,exports){
 (function (Buffer){
