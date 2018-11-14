@@ -1,6 +1,7 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 var Peer = require('simple-peer')
-let p;
+let initiator = false;
+let peer;
 let socket;
 
 function newMessage(e){
@@ -22,41 +23,56 @@ document.querySelector('#join-socket-form').addEventListener('submit', function 
     socket.on('chat message', function(msg){
       $('#socket-messages').append($('<li>').text(msg));
     });
+    socket.on('call peer', function(data){
+      if(!initiator){
+        $('#socket-messages').append($('<li>').text("Someone is calling you!"));
+        gettingCall(data)
+      }
+    })
+    socket.on('answer peer', function(data){
+      if(initiator){
+        $('#socket-messages').append($('<li>').text("The other party answered your call!"));
+        gettingAnswer(data)
+      }
+    })
     document.querySelector('#socket-message-form').addEventListener('submit', newMessage)
   })
 })
 
-navigator.getUserMedia({video:true, audio:true}, gotMedia, function(){})
+function gettingAnswer(data){
+  peer.signal(data.ipObj)
+}
 
-function gotMedia(stream){
-  p = new Peer({ initiator: location.hash === '#1', trickle:false, stream:stream })
+function gettingCall(data){
+  navigator.getUserMedia({video:true, audio:true}, (stream) => gotMediaAfterBeingCalled(stream, data), function(){})
+}
 
-  p.on('error', function (err) { console.log('error', err) })
-   
-  p.on('signal', function (data) {
-    console.log('SIGNAL', JSON.stringify(data))
+function gotMediaAfterBeingCalled(stream, data){
+  peer = new Peer({ initiator: initiator, trickle:false, stream:stream })
+
+  peer.on('error', function (err) { console.log('error', err) })
+
+  peer.on('signal', function(data){
+    if(data.renegotiate){return}
+    $("#answer").on('click', function(){
+      alert('answer')
+      socket.emit('answer peer', {initiator:initiator, ipObj:JSON.stringify(data)})
+    })
     document.querySelector('#outgoing').textContent = JSON.stringify(data)
   })
-   
-  document.querySelector('#form1').addEventListener('submit', function (ev) {
-    ev.preventDefault()
-    p.signal(JSON.parse(document.querySelector('#incoming').value))
-  })
-  document.querySelector('#form2').addEventListener('submit', function (ev) {
-    ev.preventDefault()
-    p.send(document.querySelector('#new-message').value)
-  })
-   
-  p.on('connect', function () {
+
+  peer.signal(JSON.parse(data.ipObj))
+
+  peer.on('connect', function () {
     console.log('CONNECT')
-    p.send('whatever' + Math.random())
+    peer.send('whatever' + Math.random())
   })
    
-  p.on('data', function (data) {
+  peer.on('data', function (data) {
     console.log('data: ' + data) 
   })
 
-  p.on('stream', function (stream) {
+  peer.on('stream', function (stream) {
     // got remote video stream, now let's show it in a video tag
     var video = document.querySelector('video')
     video.src = window.URL.createObjectURL(stream)
@@ -64,77 +80,39 @@ function gotMedia(stream){
   })
 }
 
+$("#call").on('click', function(){
+  initiator = true
+  navigator.getUserMedia({video:true, audio:true}, gotMediaForCall, function(){})
+})
 
 
+function gotMediaForCall(stream){
+  peer = new Peer({ initiator: initiator, trickle:false, stream:stream })
 
-
-
-// var Peer = require('simple-peer')
-// let p;
-// let initiator;
-// let connectId;
+  peer.on('error', function (err) { console.log('error', err) })
    
-// document.querySelector('#call').addEventListener('submit', function (ev) {
-//   ev.preventDefault()
-//   initiator = true
-//   connectId = $("#call-id").val().trim()
-//   p2pConnect()
-// })
-// document.querySelector('#answer').addEventListener('submit', function (ev) {
-//   ev.preventDefault()
-//   initiator = false
-//   connectId = $("#answer-id").val().trim()
-//   p2pConnect()
-// })
-
-// function p2pConnect(initiator){
-//   navigator.getUserMedia({video:true, audio:true}, gotMedia, function(){})
-// }
-
-// function gotMedia(stream){
-//   p = new Peer({ initiator: initiator, trickle:false, stream:stream })
-
-//   p.on('error', function (err) { console.log('error', err) })
-  
-//   p.on('signal', function (data) {
-//     // console.log('SIGNAL', JSON.stringify(data))
-//     $.post('/api/callPeer', {connectId:connectId, initiator:initiator, ipObj:JSON.stringify(data)}, function(res){
-//       connect()
-//     })
-//   })
-
-//   let funcShouldRun = true
-//   function connect(){
-//     if(!funcShouldRun){return}
-//     funcShouldRun = false 
-//     socket = io('/' + connectId, {forceNew:true})
-//     console.log(socket)
-//     socket.on('callingPeer', function(ipObjects){
-//       console.log(ipObjects)
-//       if(initiator){
-//         p.signal(JSON.parse(ipObjects.answerer))
-//       } else {
-//         p.signal(JSON.parse(ipObjects.initiator))
-//       }
-//     });
-//   }
+  peer.on('signal', function (data) {
+    alert('hit')
+    socket.emit('call peer', {initiator:initiator, ipObj:JSON.stringify(data)})
+    document.querySelector('#outgoing').textContent = JSON.stringify(data)
+  })
    
-//   p.on('connect', function () {
-//     console.log('CONNECT')
-//     p.send('whatever' + Math.random())
-//   })
+  peer.on('connect', function () {
+    console.log('CONNECT')
+    peer.send('whatever' + Math.random())
+  })
    
-//   p.on('data', function (data) {
-//     console.log('data: ' + data) 
-//   })
+  peer.on('data', function (data) {
+    console.log('data: ' + data) 
+  })
 
-//   p.on('stream', function (stream) {
-//     // got remote video stream, now let's show it in a video tag
-//     var video = document.querySelector('video')
-//     video.src = window.URL.createObjectURL(stream)
-//     video.play()
-//   })
-// }
+  peer.on('stream', function (stream) {
+    // got remote video stream, now let's show it in a video tag
+    var video = document.querySelector('video')
+    video.src = window.URL.createObjectURL(stream)
+    video.play()
+  })
+}
 
 },{"simple-peer":21}],2:[function(require,module,exports){
 (function (Buffer){

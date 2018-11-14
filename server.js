@@ -15,9 +15,7 @@ app.use(express.json());
 let spaces = {}
 
 app.post("/api/joinSocket", function(req, res){
-
   let nsp = req.body.socketId
-
   if(!spaces[nsp]){
 
     console.log('new room created')
@@ -33,6 +31,14 @@ app.post("/api/joinSocket", function(req, res){
       socket.on('chat message', function(msg){
         spaces[nsp].emit('chat message', "To: " + nsp + ", " + msg);
       })
+
+      socket.on('call peer', function(data){
+        spaces[nsp].emit('call peer', data)
+      })
+
+      socket.on('answer peer', function(data){
+        spaces[nsp].emit('answer peer', data)
+      })
     });
 
     res.send({status:200})
@@ -45,21 +51,21 @@ app.post("/api/joinSocket", function(req, res){
   }
 })
 
-app.post('/api/callPeer', function(req, res){
-  let nsp = req.body.connectId
-  spaces[nsp] = io.of('/' + nsp)
-  if (!spaces[nsp].initiator){
-    spaces[nsp].initiator = req.body.ipObj
-  } else if (spaces[nsp].initiator !== req.body.ipObj){
-    spaces[nsp].answerer = req.body.ipObj
-  }
-  spaces[nsp].on('connection', function(socket){
-    if(spaces[nsp].initiator && spaces[nsp].answerer){
-      spaces[nsp].emit('callingPeer', {initiator:spaces[nsp].initiator, answerer:spaces[nsp].answerer});
-    }
-  });
-  res.send({status:200})
-})
+// app.post('/api/callPeer', function(req, res){
+//   let nsp = req.body.connectId
+//   spaces[nsp] = io.of('/' + nsp)
+//   if (!spaces[nsp].initiator){
+//     spaces[nsp].initiator = req.body.ipObj
+//   } else if (spaces[nsp].initiator !== req.body.ipObj){
+//     spaces[nsp].answerer = req.body.ipObj
+//   }
+//   spaces[nsp].on('connection', function(socket){
+//     if(spaces[nsp].initiator && spaces[nsp].answerer){
+//       spaces[nsp].emit('callingPeer', {initiator:spaces[nsp].initiator, answerer:spaces[nsp].answerer});
+//     }
+//   });
+//   res.send({status:200})
+// })
 
 app.use(express.static(path.join(__dirname, "/")));
 
