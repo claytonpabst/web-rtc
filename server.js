@@ -14,6 +14,37 @@ app.use(express.json());
 
 let spaces = {}
 
+app.post("/api/joinSocket", function(req, res){
+
+  let nsp = req.body.socketId
+
+  if(!spaces[nsp]){
+
+    console.log('new room created')
+    spaces[nsp] = io.of('/' + nsp)
+
+    spaces[nsp].on('connection', function(socket){
+      console.log('someone connected');
+
+      socket.on('disconnect', function(){
+        console.log('user disconnected');
+      })
+
+      socket.on('chat message', function(msg){
+        spaces[nsp].emit('chat message', "To: " + nsp + ", " + msg);
+      })
+    });
+
+    res.send({status:200})
+
+  } else {
+
+    console.log('room already exists')
+    res.send({status:200})
+
+  }
+})
+
 app.post('/api/callPeer', function(req, res){
   let nsp = req.body.connectId
   spaces[nsp] = io.of('/' + nsp)
